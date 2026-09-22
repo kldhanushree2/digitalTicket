@@ -149,27 +149,46 @@ const parseTicketText = (ocrText, barcodeData = null) => {
   // after that. Falls back further to the first meaningful line at all,
   // and finally the raw first line, if nothing better is found.
   const labeledEventName = extractLabeledField(ocrText, ["Movie", "Event", "Show", "Film"]);
+  const brandingLine = meaningfulLines.find((line) => BRANDING_WORDS.test(line));
   const nonBrandingLine = meaningfulLines.find((line) => !BRANDING_WORDS.test(line));
   const eventName = labeledEventName || nonBrandingLine || meaningfulLines[0] || lines[0] || "";
+
+  // Venue: prefer an explicit "Venue:"/"Location:" label. Many real tickets
+  // (like a cinema ticket) never label the venue at all - they just print
+  // the venue/chain name as a heading (e.g. "SUNRISE CINEMAS"), which is
+  // exactly the branding-style line we skip past above when guessing the
+  // event name. That same line is a solid fallback guess for venue.
+  const labeledVenue = extractLabeledField(ocrText, ["Venue", "Location", "Theatre", "Theater"]);
+  const venue = labeledVenue || brandingLine || "";
+
+  // Ticket/booking numbers on real tickets are often printed as a bare
+  // alphanumeric code with NO label at all (e.g. "SC250927B12",
+  // "BMS123456") - typically near a barcode/QR graphic. This looks for a
+  // standalone token that's a mix of uppercase letters AND digits, long
+  // enough to be a real code rather than a coincidental short match, and
+  // not something that's actually a date/time we've already parsed.
+  const bareCodeMatch = ocrText.match(/\b(?=[A-Z0-9]{6,15}\b)(?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*\d)[A-Z0-9]{6,15}\b/);
+
+  const ticketNumber =
+    extractLabeledField(ocrText, [
+      "Booking ID",
+      "Ticket No",
+      "Ticket Number",
+      "Ticket #",
+      "PNR",
+      "Ref",
+    ]) ||
+    barcodeData ||
+    (bareCodeMatch ? bareCodeMatch[0] : "");
 
   return {
     eventName,
     category: detectCategory(ocrText),
     date: extractDate(ocrText),
     time: extractTime(ocrText),
-    venue: extractLabeledField(ocrText, ["Venue", "Location", "Theatre", "Theater"]),
+    venue,
     seatNumber: extractLabeledField(ocrText, ["Seat", "Seat No", "Seat Number"]),
-    ticketNumber:
-      extractLabeledField(ocrText, [
-        "Booking ID",
-        "Ticket No",
-        "Ticket Number",
-        "Ticket #",
-        "PNR",
-        "Ref",
-      ]) ||
-      barcodeData ||
-      "",
+    ticketNumber,
     gateNumber: extractLabeledField(ocrText, ["Gate", "Gate No", "Gate Number"]),
     rawOcrText: ocrText,
     barcodeData: barcodeData || "",
