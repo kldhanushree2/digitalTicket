@@ -106,19 +106,51 @@ const extractLabeledField = (text, labels) => {
   return "";
 };
 
+// A lot of "tickets" users upload are actually screenshots of an app
+// (RedBus, IRCTC, an airline app, etc.), not photos of a printed ticket.
+// OCR reads the phone's status bar first - clock, signal bars, battery
+// percentage - before it gets to any real content. Left unfiltered, that
+// junk (e.g. "11:36 © © mR F al 019%") becomes the top candidate for our
+// "first line" event-name fallback below. This filters lines that are
+// mostly symbols/short fragments rather than real words, so the fallback
+// skips past status-bar noise to the first line that actually looks like
+// ticket content.
+const isLikelyNoiseLine = (line) => {
+  // A status bar line is short and has very little real alphabetic
+  // content once you strip out digits, %, and symbols.
+  const letters = line.replace(/[^a-zA-Z]/g, "");
+  if (letters.length < 4) return true;
+
+  // Classic clock+battery shape: "11:36 ... 19%" with little else.
+  if (/^\d{1,2}:\d{2}\b.*\d{1,3}%?$/i.test(line) && letters.length < 8) return true;
+
+  return false;
+};
+
+// Words that typically describe the VENUE/vendor rather than the actual
+// event itself (a cinema chain's name, a generic "movie ticket" label).
+// Used only to skip past branding text when guessing the event name -
+// these words are still perfectly fine to appear elsewhere (e.g. category
+// detection above deliberately DOES look for "cinema").
+const BRANDING_WORDS = /\b(cinemas?|multiplex|movie\s*ticket|theatre|theater|box\s*office)\b/i;
+
 // Takes raw OCR text (and optionally decoded barcode text) and returns
 // a structured object matching the fields the frontend's upload form uses.
 // Every field is a best-effort guess - the user reviews and corrects
 // these before the ticket is actually saved via POST /api/tickets.
 const parseTicketText = (ocrText, barcodeData = null) => {
   const lines = ocrText.split("\n").map((l) => l.trim()).filter(Boolean);
+  const meaningfulLines = lines.filter((line) => !isLikelyNoiseLine(line));
 
   // Event name heuristic: prefer a line explicitly labeled "Movie:",
-  // "Event:", or "Show:"; otherwise fall back to the first non-empty
-  // line of the ticket (often the venue name or event title on real
-  // tickets), which the user can correct if it's wrong.
+  // "Event:", or "Show:"; otherwise fall back to the first meaningful
+  // line that ISN'T just venue branding (a cinema chain's name, a generic
+  // "MOVIE TICKET" label) - the actual title is usually the next line
+  // after that. Falls back further to the first meaningful line at all,
+  // and finally the raw first line, if nothing better is found.
   const labeledEventName = extractLabeledField(ocrText, ["Movie", "Event", "Show", "Film"]);
-  const eventName = labeledEventName || lines[0] || "";
+  const nonBrandingLine = meaningfulLines.find((line) => !BRANDING_WORDS.test(line));
+  const eventName = labeledEventName || nonBrandingLine || meaningfulLines[0] || lines[0] || "";
 
   return {
     eventName,
@@ -128,7 +160,14 @@ const parseTicketText = (ocrText, barcodeData = null) => {
     venue: extractLabeledField(ocrText, ["Venue", "Location", "Theatre", "Theater"]),
     seatNumber: extractLabeledField(ocrText, ["Seat", "Seat No", "Seat Number"]),
     ticketNumber:
-      extractLabeledField(ocrText, ["Booking ID", "Ticket No", "Ticket Number", "PNR", "Ref"]) ||
+      extractLabeledField(ocrText, [
+        "Booking ID",
+        "Ticket No",
+        "Ticket Number",
+        "Ticket #",
+        "PNR",
+        "Ref",
+      ]) ||
       barcodeData ||
       "",
     gateNumber: extractLabeledField(ocrText, ["Gate", "Gate No", "Gate Number"]),
