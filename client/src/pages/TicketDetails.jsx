@@ -8,6 +8,17 @@ const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:5000/api")
   ""
 );
 
+// A ticket's fileUrl is relative ("/uploads/xxx.jpg") when the backend is
+// using local disk storage, but a full absolute URL
+// ("https://res.cloudinary.com/...") when using Cloudinary - see Module 8's
+// storageProvider flag. Blindly prepending API_ORIGIN to an already-absolute
+// URL produces a broken concatenated string, so we only prepend it when the
+// URL doesn't already start with http:// or https://.
+const resolveFileUrl = (rawFileUrl) => {
+  if (!rawFileUrl) return "";
+  return /^https?:\/\//i.test(rawFileUrl) ? rawFileUrl : `${API_ORIGIN}${rawFileUrl}`;
+};
+
 const TicketDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -72,7 +83,7 @@ const TicketDetails = () => {
   if (error && !ticket) return <p className="page-status form-error">{error}</p>;
   if (!ticket) return null;
 
-  const fileUrl = `${API_ORIGIN}${ticket.fileUrl}`;
+  const fileUrl = resolveFileUrl(ticket.fileUrl);
   const isPdf = ticket.fileType === "application/pdf";
 
   return (
