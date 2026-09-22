@@ -377,6 +377,20 @@ body {
   color: var(--text-muted);
 }
 
+.extraction-status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 4px 0 0;
+}
+
+.extraction-success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
 /* Filter bar */
 .filter-bar {
   display: flex;
