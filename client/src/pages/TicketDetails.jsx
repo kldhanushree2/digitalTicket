@@ -94,9 +94,17 @@ const TicketDetails = () => {
       <div className="ticket-details-layout">
         <div className="ticket-file-preview">
           {isPdf ? (
-            <a href={fileUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
-              View PDF
-            </a>
+            <>
+              {/* Browsers with a built-in PDF viewer (Chrome, Edge, Firefox,
+                  Safari) render this inline automatically - no extra
+                  library needed. Some mobile browsers don't support
+                  embedded PDFs well, so we keep an "open in new tab" link
+                  underneath as a fallback for those cases. */}
+              <iframe src={fileUrl} title={ticket.eventName} className="ticket-pdf-embed" />
+              <a href={fileUrl} target="_blank" rel="noreferrer" className="pdf-fallback-link">
+                Open in new tab
+              </a>
+            </>
           ) : (
             <img src={fileUrl} alt={ticket.eventName} />
           )}
