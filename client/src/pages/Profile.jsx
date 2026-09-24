@@ -1,11 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import * as authService from "../services/authService";
+import ticketService from "../services/ticketService";
+
+const getInitials = (name = "") =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "?";
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
+
+  // --- Account stats (fetched for the header) ---
+  const [stats, setStats] = useState({ total: 0, upcoming: 0, loading: true });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const tickets = await ticketService.getTickets();
+        const now = Date.now();
+        const upcoming = tickets.filter((t) => new Date(t.date).getTime() > now).length;
+        setStats({ total: tickets.length, upcoming, loading: false });
+      } catch {
+        setStats({ total: 0, upcoming: 0, loading: false });
+      }
+    };
+    loadStats();
+  }, []);
 
   // --- Profile info (name/email) ---
   const [editingProfile, setEditingProfile] = useState(false);
@@ -65,9 +91,35 @@ const Profile = () => {
     }
   };
 
+  const memberSince =
+    user?.createdAt &&
+    new Date(user.createdAt).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
   return (
     <div className="page profile-page">
-      <h1>Profile &amp; Settings</h1>
+      {/* --- Profile header --- */}
+      <div className="profile-header">
+        <div className="profile-avatar">{getInitials(user?.name)}</div>
+        <div className="profile-header-info">
+          <h1>{user?.name}</h1>
+          <p className="profile-header-email">{user?.email}</p>
+          {memberSince && <p className="profile-header-since">Member since {memberSince}</p>}
+        </div>
+        <div className="profile-header-stats">
+          <div className="profile-stat">
+            <span className="stat-number">{stats.loading ? "—" : stats.total}</span>
+            <span className="stat-label">Tickets</span>
+          </div>
+          <div className="profile-stat">
+            <span className="stat-number">{stats.loading ? "—" : stats.upcoming}</span>
+            <span className="stat-label">Upcoming</span>
+          </div>
+        </div>
+      </div>
 
       {/* --- Profile info --- */}
       <section className="settings-card">
@@ -116,14 +168,9 @@ const Profile = () => {
             <p>
               <strong>Email:</strong> {user?.email}
             </p>
-            {user?.createdAt && (
+            {memberSince && (
               <p>
-                <strong>Member since:</strong>{" "}
-                {new Date(user.createdAt).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                <strong>Member since:</strong> {memberSince}
               </p>
             )}
             <button className="btn btn-primary" onClick={() => setEditingProfile(true)}>
