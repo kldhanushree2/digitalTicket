@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ticketService from "../services/ticketService";
 import TicketCard from "../components/TicketCard";
+import EmptyState from "../components/EmptyState";
+import { SkeletonGrid } from "../components/SkeletonCard";
 import { useAuth } from "../context/AuthContext";
 import { ReminderSettings } from "../components/ReminderManager";
 
@@ -49,7 +51,6 @@ const Dashboard = () => {
     fetchTickets();
   }, []);
 
-  if (loading) return <p className="page-status">Loading dashboard...</p>;
   if (error) return <p className="page-status form-error">{error}</p>;
 
   const { upcoming, today, completed } = categorizeTickets(tickets);
@@ -59,25 +60,29 @@ const Dashboard = () => {
 
   return (
     <div className="page">
-      <h1>Welcome back, {user?.name}</h1>
+      <h1>Welcome back, {user?.name} 👋</h1>
 
       <ReminderSettings />
 
       <div className="stats-grid">
         <div className="stat-card">
-          <span className="stat-number">{tickets.length}</span>
+          <span className="stat-icon">🎟️</span>
+          <span className="stat-number">{loading ? "—" : tickets.length}</span>
           <span className="stat-label">Total Tickets</span>
         </div>
         <div className="stat-card">
-          <span className="stat-number">{upcoming.length}</span>
+          <span className="stat-icon">⏳</span>
+          <span className="stat-number">{loading ? "—" : upcoming.length}</span>
           <span className="stat-label">Upcoming</span>
         </div>
         <div className="stat-card">
-          <span className="stat-number">{today.length}</span>
+          <span className="stat-icon">📅</span>
+          <span className="stat-number">{loading ? "—" : today.length}</span>
           <span className="stat-label">Today</span>
         </div>
         <div className="stat-card">
-          <span className="stat-number">{completed.length}</span>
+          <span className="stat-icon">✅</span>
+          <span className="stat-number">{loading ? "—" : completed.length}</span>
           <span className="stat-label">Completed</span>
         </div>
       </div>
@@ -89,10 +94,16 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      {recent.length === 0 ? (
-        <p className="page-status">
-          No tickets yet. <Link to="/upload">Upload your first one</Link>.
-        </p>
+      {loading ? (
+        <SkeletonGrid count={3} />
+      ) : recent.length === 0 ? (
+        <EmptyState
+          icon="🎫"
+          title="No tickets yet"
+          message="Upload your first movie, flight, train, bus, or event ticket to see it here."
+          actionTo="/upload"
+          actionLabel="Upload a Ticket"
+        />
       ) : (
         <div className="ticket-grid">
           {recent.map((ticket) => (

@@ -13,6 +13,19 @@ const CATEGORY_ICONS = {
   Other: "🎫",
 };
 
+// Each category gets its own accent color, used for the card's top bar
+// and icon badge so a grid of tickets is easier to scan at a glance.
+const CATEGORY_COLORS = {
+  Movie: "#e0428d",
+  Flight: "#2563eb",
+  Train: "#0891b2",
+  Bus: "#ca8a04",
+  Concert: "#9333ea",
+  Sports: "#16a34a",
+  Conference: "#1f38c9",
+  Other: "#64748b",
+};
+
 // Given an event date + time, returns a human-readable countdown string,
 // or "Event completed" if it's in the past.
 const getCountdown = (dateStr, timeStr) => {
@@ -56,22 +69,31 @@ const TicketCard = ({ ticket }) => {
     year: "numeric",
   });
 
+  const accentColor = CATEGORY_COLORS[ticket.category] || CATEGORY_COLORS.Other;
+  const isToday = new Date(ticket.date).toDateString() === new Date().toDateString();
+  const isCompleted = countdown === "Event completed";
+
   return (
-    <div className="ticket-card">
+    <div className="ticket-card" style={{ "--accent-color": accentColor }}>
+      <div className="ticket-card-top" />
+
       <div className="ticket-card-header">
-        <span className="ticket-icon">{CATEGORY_ICONS[ticket.category] || "🎫"}</span>
+        <span className="ticket-icon" style={{ background: `${accentColor}1a`, color: accentColor }}>
+          {CATEGORY_ICONS[ticket.category] || "🎫"}
+        </span>
         <h3>{ticket.eventName}</h3>
+        {isToday && !isCompleted && <span className="ticket-status-pill">Today</span>}
       </div>
 
       <p className="ticket-date">
         {formattedDate} {ticket.time && `· ${ticket.time}`}
       </p>
 
-      {ticket.venue && <p className="ticket-venue">{ticket.venue}</p>}
-      {ticket.seatNumber && <p className="ticket-seat">Seat: {ticket.seatNumber}</p>}
+      {ticket.venue && <p className="ticket-venue">📍 {ticket.venue}</p>}
+      {ticket.seatNumber && <p className="ticket-seat">💺 Seat: {ticket.seatNumber}</p>}
 
-      <p className={`ticket-countdown ${countdown === "Event completed" ? "completed" : ""}`}>
-        {countdown === "Event completed" ? countdown : `Starts in: ${countdown}`}
+      <p className={`ticket-countdown ${isCompleted ? "completed" : ""}`}>
+        {isCompleted ? countdown : `Starts in: ${countdown}`}
       </p>
 
       <Link to={`/tickets/${ticket._id}`} className="btn-view">

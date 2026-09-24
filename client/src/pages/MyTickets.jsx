@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import ticketService from "../services/ticketService";
 import TicketCard from "../components/TicketCard";
+import EmptyState from "../components/EmptyState";
+import { SkeletonGrid } from "../components/SkeletonCard";
 
 const CATEGORIES = ["All", "Movie", "Flight", "Train", "Bus", "Concert", "Sports", "Conference", "Other"];
 const STATUSES = ["All", "Upcoming", "Today", "Completed"];
@@ -66,7 +68,6 @@ const MyTickets = () => {
       return new Date(a.date) - new Date(b.date);
     });
 
-  if (loading) return <p className="page-status">Loading tickets...</p>;
   if (error) return <p className="page-status form-error">{error}</p>;
 
   return (
@@ -103,8 +104,14 @@ const MyTickets = () => {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="page-status">No tickets match your search.</p>
+      {loading ? (
+        <SkeletonGrid count={6} />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon="🔍"
+          title="No tickets match your search"
+          message="Try a different keyword, or clear the category/status filters."
+        />
       ) : (
         <div className="ticket-grid">
           {filtered.map((ticket) => (
