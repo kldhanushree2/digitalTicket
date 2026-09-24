@@ -25,7 +25,10 @@ const Home = () => {
   return (
     <div>
       <div className="hero-section">
-        <img src="/logo.png" alt="DigitalTicket logo" className="hero-logo" />
+        <div className="hero-brand">
+          <img src="/logo.png" alt="DigitalTicket logo" className="hero-logo" />
+          <span className="hero-brand-name">DigitalTicket</span>
+        </div>
         <div className="hero-badge">🎫 Your tickets, organized</div>
 
         <div className="home-page">
