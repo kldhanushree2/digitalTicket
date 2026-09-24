@@ -41,6 +41,7 @@ const Profile = () => {
   const [profileError, setProfileError] = useState("");
 
   // --- Change password ---
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
@@ -74,6 +75,7 @@ const Profile = () => {
       setPasswordMessage("Password updated successfully.");
       setCurrentPassword("");
       setNewPassword("");
+      setShowPasswordForm(false);
     } catch (err) {
       setPasswordError(err.response?.data?.message || "Password change failed");
     }
@@ -187,30 +189,50 @@ const Profile = () => {
         {passwordMessage && <p className="success-banner">{passwordMessage}</p>}
         {passwordError && <p className="error-banner">{passwordError}</p>}
 
-        <form onSubmit={handleChangePassword}>
-          <label>
-            Current Password
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            New Password
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              minLength={6}
-              required
-            />
-          </label>
-          <button type="submit" className="btn btn-primary">
-            Update Password
+        {!showPasswordForm ? (
+          <button className="btn btn-secondary" onClick={() => setShowPasswordForm(true)}>
+            Change Password
           </button>
-        </form>
+        ) : (
+          <form onSubmit={handleChangePassword}>
+            <label>
+              Current Password
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              New Password
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={6}
+                required
+              />
+            </label>
+            <div className="button-row">
+              <button type="submit" className="btn btn-primary">
+                Update Password
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowPasswordForm(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setPasswordError("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
       {/* --- Delete account --- */}
