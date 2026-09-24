@@ -30,7 +30,11 @@ const Register = () => {
   return (
     <div className="auth-page">
       <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-logo">
+          <img src="/logo.png" alt="DigitalTicket logo" />
+        </div>
         <h2>Create your account</h2>
+        <p className="auth-subtitle">Start organizing every ticket in one place</p>
         {error && <p className="form-error">{error}</p>}
 
         <label>Name</label>

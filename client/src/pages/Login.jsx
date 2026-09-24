@@ -28,7 +28,11 @@ const Login = () => {
   return (
     <div className="auth-page">
       <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-logo">
+          <img src="/logo.png" alt="DigitalTicket logo" />
+        </div>
         <h2>Welcome back</h2>
+        <p className="auth-subtitle">Log in to see your upcoming tickets</p>
         {error && <p className="form-error">{error}</p>}
 
         <label>Email</label>

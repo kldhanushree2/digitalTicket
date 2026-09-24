@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
@@ -10,19 +10,30 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  const linkClass = ({ isActive }) => (isActive ? "active" : "");
+
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        🎫 DigitalTicket
+        <img src="/logo.png" alt="DigitalTicket logo" className="navbar-logo" />
+        DigitalTicket
       </Link>
 
       <div className="navbar-links">
         {user ? (
           <>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/tickets">My Tickets</Link>
-            <Link to="/calendar">Calendar</Link>
-            <Link to="/upload">Upload</Link>
+            <NavLink to="/dashboard" className={linkClass}>
+              Dashboard
+            </NavLink>
+            <NavLink to="/tickets" className={linkClass}>
+              My Tickets
+            </NavLink>
+            <NavLink to="/calendar" className={linkClass}>
+              Calendar
+            </NavLink>
+            <NavLink to="/upload" className={linkClass}>
+              Upload
+            </NavLink>
             <Link to="/profile" className="navbar-user">
               Hi, {user.name}
             </Link>
@@ -33,7 +44,9 @@ const Navbar = () => {
         ) : (
           <>
             <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/register" className="btn btn-primary">
+              Get Started
+            </Link>
           </>
         )}
       </div>
