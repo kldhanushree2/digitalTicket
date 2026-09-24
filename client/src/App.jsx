@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import BackgroundOrbs from "./components/BackgroundOrbs";
 import { ReminderManager } from "./components/ReminderManager";
 
 import Home from "./pages/Home";
@@ -18,6 +19,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <BackgroundOrbs />
         <Navbar />
         <ReminderManager />
         <main className="app-main">

@@ -25,11 +25,6 @@ const Home = () => {
   return (
     <div>
       <div className="hero-section">
-        <div className="hero-orb hero-orb-1" aria-hidden="true"></div>
-        <div className="hero-orb hero-orb-2" aria-hidden="true"></div>
-        <div className="hero-orb hero-orb-3" aria-hidden="true"></div>
-        <div className="hero-orb hero-orb-4" aria-hidden="true"></div>
-
         <div className="hero-brand">
           <img src="/logo.png" alt="DigitalTicket logo" className="hero-logo" />
           <span className="hero-brand-name">DigitalTicket</span>
